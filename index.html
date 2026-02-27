@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Flappy Pakhi - গেম টা তোমার জন্য না  🐥</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<style>
+  body {
+    margin:0; padding:0; height:100vh; overflow:hidden;
+    background: linear-gradient(135deg, #74ebd5, #ACB6E5, #ff9a9e);
+    font-family: Arial, sans-serif;
+    touch-action: manipulation;
+  }
+  canvas { display:block; }
+  #ui {
+    position:absolute; inset:0; pointer-events:none;
+    color:#fff; user-select:none;
+  }
+  #score {
+    position:absolute; top:10px; left:0; right:0;
+    text-align:center; font-size:clamp(36px,10vw,56px);
+    font-weight:bold; text-shadow:3px 3px 8px #000;
+    z-index: 5;
+  }
+
+  #start-screen, #gameover {
+    position:absolute; inset:0;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    pointer-events:all;
+    z-index: 10;
+  }
+
+  #start-screen {
+    background: linear-gradient(135deg, rgba(116,235,213,0.9), rgba(172,182,229,0.85), rgba(255,154,158,0.8));
+    backdrop-filter: blur(6px);
+    overflow: hidden;
+  }
+
+  .title-container {
+    position: relative;
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  h1 {
+    font-size: clamp(60px, 18vw, 120px);
+    font-weight: 900;
+    margin: 0;
+    background: linear-gradient(90deg, #ffe066, #ff9a8b, #ff6b81, #a78bfa, #74ebd5);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 6px 6px 15px rgba(0,0,0,0.45);
+    letter-spacing: 4px;
+    animation: glow 3s ease-in-out infinite alternate;
+  }
+
+  @keyframes glow {
+    from { text-shadow: 0 0 20px rgba(255,230,100,0.8); }
+    to   { text-shadow: 0 0 40px rgba(180,100,255,0.9), 0 0 60px rgba(100,220,255,0.7); }
+  }
+
+  .subtitle {
+    font-size: clamp(26px, 8vw, 42px);
+    margin: 20px 0 50px;
+    color: white;
+    text-shadow: 3px 3px 10px #000;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+  }
+
+  .floating-birds .decor-pakhi {
+    position: absolute;
+    font-size: clamp(60px, 15vw, 110px);
+    opacity: 0.92;
+    animation: float-pakhi 7s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  .decor-pakhi.big.left   { left: -20%; top: 15%; animation-delay: 0s; }
+  .decor-pakhi.big.right  { right: -20%; top: 30%; animation-delay: 2.8s; }
+  .decor-pakhi.medium.top { left: 45%; top: -10%; font-size: clamp(50px,12vw,90px); animation-delay: 1.4s; }
+
+  @keyframes float-pakhi {
+    0%,100%   { transform: translateY(0) rotate(0deg) scale(1); }
+    50%       { transform: translateY(-35px) rotate(12deg) scale(1.08); }
+  }
+
+  .info-box {
+    background: rgba(255,255,255,0.18);
+    backdrop-filter: blur(8px);
+    border-radius: 20px;
+    padding: 20px 40px;
+    margin: 20px 0 40px;
+    text-align: center;
+    font-size: clamp(20px, 6vw, 28px);
+    color: white;
+    border: 2px solid rgba(255,255,255,0.4);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+  }
+
+  .info-box p {
+    margin: 8px 0;
+  }
+
+  .btn {
+    position: relative;
+    overflow: hidden;
+    padding: 16px 60px;
+    font-size: clamp(24px, 7vw, 34px);
+    background: linear-gradient(135deg, #ff4757, #ff7675, #ff9ff3);
+    border: none;
+    border-radius: 50px;
+    box-shadow: 0 10px 0 #c0392b, 0 12px 25px rgba(0,0,0,0.45);
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.18s;
+    margin: 20px;
+  }
+
+  .btn:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 14px 0 #c0392b, 0 18px 35px rgba(0,0,0,0.5);
+    background: linear-gradient(135deg, #ff6b81, #ff9ff3, #a29bfe);
+  }
+
+  .btn:active {
+    transform: translateY(5px);
+    box-shadow: 0 4px 0 #c0392b;
+  }
+
+  .btn-shine {
+    position: absolute;
+    top: -50%;
+    left: -100%;
+    width: 50%;
+    height: 200%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.7), transparent);
+    transform: skewX(-25deg);
+    animation: shine 2.5s infinite;
+  }
+
+  @keyframes shine {
+    0%   { left: -100%; }
+    20%  { left: 120%; }
+    100% { left: 120%; }
+  }
+
+  .highscore-preview {
+    margin-top: 30px;
+    font-size: clamp(22px, 6vw, 32px);
+    color: #fff9;
+    text-shadow: 2px 2px 6px #000;
+    font-weight: 500;
+  }
+
+  .floating-cloud {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    opacity: 0.7;
+    pointer-events: none;
+    animation: drift 25s linear infinite;
+  }
+
+  .cloud1 { width: 180px; height: 70px; top: 15%; left: -15%; animation-duration: 40s; }
+  .cloud2 { width: 140px; height: 55px; top: 45%; right: -15%; animation-duration: 55s; animation-delay: -15s; }
+  .cloud3 { width: 220px; height: 85px; bottom: 20%; left: 30%; animation-duration: 70s; animation-delay: -30s; }
+
+  @keyframes drift {
+    0%   { transform: translateX(-20vw); }
+    100% { transform: translateX(140vw); }
+  }
+
+  #gameover {
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(4px);
+    display: none;
+  }
+
+  #gameover h1 {
+    font-size: clamp(50px, 14vw, 80px);
+    margin: 10px;
+    color: #ff6b6b;
+    text-shadow: 4px 4px 10px #000;
+  }
+
+  #finalscore, #highscore {
+    margin: 15px 0;
+    text-shadow: 2px 2px 6px #000;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+<div id="ui">
+  <div id="score">0</div>
+
+  <div id="start-screen">
+    <div class="title-container">
+      <div class="floating-birds">
+        <span class="decor-pakhi big left">🐥</span>
+        <span class="decor-pakhi big right">🐤</span>
+        <span class="decor-pakhi medium top">🐣</span>
+      </div>
+      
+      <h1>Flappy Pakhi</h1>
+      <div class="subtitle">পারলে খেলে ! 🐥 দেখাও !</div>
+    </div>
+
+    <div class="info-box">
+      <p><strong>TAP</strong> বা <strong>SPACE</strong> চাপ দাও উড়তে!</p>
+      <p>পাইপ এড়িয়ে যতদূর যাওয়া যায়!</p>
+    </div>
+
+    <button class="btn" id="startBtn">
+      <span>START GAME</span>
+      <div class="btn-shine"></div>
+    </button>
+
+    <div class="highscore-preview">
+      High Score: <span id="previewHS">0</span> 🏆
+    </div>
+
+    <div class="floating-cloud cloud1"></div>
+    <div class="floating-cloud cloud2"></div>
+    <div class="floating-cloud cloud3"></div>
+  </div>
+
+  <div id="gameover">
+    <h1>GAME OVER 😆</h1>
+    <div id="finalscore" style="font-size:clamp(36px,10vw,56px);">Score: 0</div>
+    <div id="highscore" style="font-size:clamp(24px,7vw,36px);">High Score: 0</div>
+    <button class="btn" id="restartBtn">
+      <span>PLAY AGAIN</span>
+      <div class="btn-shine"></div>
+    </button>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const scoreEl = document.getElementById('score');
+const startScreen = document.getElementById('start-screen');
+const gameoverScreen = document.getElementById('gameover');
+const finalScoreEl = document.getElementById('finalscore');
+const highScoreEl = document.getElementById('highscore');
+const previewHSEl = document.getElementById('previewHS');
+
+let width, height;
+function resize() {
+  width = canvas.width = window.innerWidth;
+  height = canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+let gameRunning = false;
+let score = 0;
+let highScore = parseInt(localStorage.getItem('flappyPakhiHS')) || 0;
+highScoreEl.textContent = `High Score: ${highScore}`;
+previewHSEl.textContent = highScore;
+
+const GRAVITY   = 0.36;
+const BOOST     = -9.5;
+const bird = { x: 150, y: height/2, r: 25, vy: 0 };
+
+const pipes = [];
+const PIPE_WIDTH = 85;
+const PIPE_GAP   = 280;
+let PIPE_SPEED = 2.6;
+const PIPE_SPAWN = 145;
+const MAX_SPEED  = 3.9;
+
+let frame = 0;
+let particles = [];
+
+// মাটি একদম নিচে — canvas-এর ৯২% এ
+const GROUND_Y = height * 0.92;
+
+function addParticles(x, y) {
+  for (let i = 0; i < 10; i++) {
+    particles.push({
+      x: x + Math.random()*28 - 14,
+      y: y + Math.random()*28 - 14,
+      vx: Math.random()*4 - 5,
+      vy: Math.random()*3 - 4,
+      size: Math.random()*5 + 3,
+      life: 40 + Math.random()*25,
+      color: ['#FFFF99', '#FFEE88', '#FFFFFF'][Math.floor(Math.random()*3)]
+    });
+  }
+}
+
+function updateParticles() {
+  for (let i = particles.length-1; i >= 0; i--) {
+    let p = particles[i];
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.09;
+    p.life--;
+    if (p.life <= 0) particles.splice(i, 1);
+  }
+  for (let p of particles) {
+    ctx.globalAlpha = p.life / 65;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size * (p.life/65), 0, Math.PI*2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function flap() {
+  if (gameRunning) {
+    bird.vy = BOOST;
+    addParticles(bird.x - bird.r*0.7, bird.y);
+  }
+}
+
+window.addEventListener('keydown', e => {
+  if (['Space', 'ArrowUp', 'KeyW'].includes(e.code)) {
+    e.preventDefault();
+    flap();
+  }
+});
+canvas.addEventListener('pointerdown', e => {
+  e.preventDefault();
+  flap();
+});
+
+function loop() {
+  ctx.fillStyle = '#87CEEB';
+  ctx.fillRect(0, 0, width, height);
+
+  // Clouds
+  ctx.fillStyle = 'white';
+  ctx.globalAlpha = 0.8;
+  let cloudX = (frame * 0.3) % (width + 200) - 100;
+  ctx.beginPath(); 
+  ctx.arc(cloudX + 150,90,65,0,Math.PI*2); 
+  ctx.arc(cloudX + 220,80,85,0,Math.PI*2); 
+  ctx.fill();
+  ctx.beginPath(); 
+  ctx.arc(cloudX + width + 50,150,70,0,Math.PI*2); 
+  ctx.arc(cloudX + width + 120,140,95,0,Math.PI*2); 
+  ctx.fill();
+  ctx.globalAlpha = 1;
+
+  // Ground
+  ctx.fillStyle = '#4CAF50';
+  ctx.fillRect(0, GROUND_Y, width, height - GROUND_Y);
+
+  drawBird();
+
+  if (!gameRunning) {
+    requestAnimationFrame(loop);
+    return;
+  }
+
+  bird.vy += GRAVITY;
+  bird.y += bird.vy;
+
+  if (bird.y + bird.r > GROUND_Y + bird.r * 1.2 || bird.y - bird.r < 5) {
+    gameOver();
+  }
+
+  if (frame % PIPE_SPAWN === 0) {
+    let safeTop = 120;
+    let safeBot = GROUND_Y - PIPE_GAP - 120;
+    let gapY = safeTop + Math.random() * (safeBot - safeTop);
+    pipes.push({x: width + 100, top: gapY, bottom: gapY + PIPE_GAP, scored: false});
+  }
+
+  for (let i = pipes.length - 1; i >= 0; i--) {
+    let p = pipes[i];
+    p.x -= PIPE_SPEED;
+
+    ctx.fillStyle = '#2E7D32';
+    ctx.fillRect(p.x-8, 0, PIPE_WIDTH+16, p.top);
+    ctx.fillRect(p.x-8, p.bottom, PIPE_WIDTH+16, GROUND_Y - p.bottom);
+
+    ctx.fillStyle = '#4CAF50';
+    ctx.fillRect(p.x, 0, PIPE_WIDTH, p.top);
+    ctx.fillRect(p.x, p.bottom, PIPE_WIDTH, GROUND_Y - p.bottom);
+
+    const dx = bird.x - p.x;
+    if (dx > -bird.r && dx < PIPE_WIDTH + bird.r) {
+      if (bird.y - bird.r < p.top || bird.y + bird.r > p.bottom) {
+        gameOver();
+      }
+    }
+
+    if (!p.scored && p.x + PIPE_WIDTH < bird.x - 20) {
+      score++;
+      scoreEl.textContent = score;
+      p.scored = true;
+      if (score % 18 === 0) {
+        PIPE_SPEED = Math.min(PIPE_SPEED + 0.07, MAX_SPEED);
+      }
+    }
+
+    if (p.x + PIPE_WIDTH < -200) pipes.splice(i,1);
+  }
+
+  updateParticles();
+
+  frame++;
+  requestAnimationFrame(loop);
+}
+
+function drawBird() {
+  ctx.save();
+  ctx.translate(bird.x, bird.y);
+  let rot = Math.min(Math.max(bird.vy * 0.06, -0.7), 0.8);
+  ctx.rotate(rot);
+
+  let flapAnim = Math.sin(frame * 0.3) * 0.7;
+  ctx.fillStyle = '#FFAB40';
+  ctx.beginPath();
+  ctx.ellipse(-14, flapAnim*20, 35, 18, flapAnim, 0, Math.PI*2);
+  ctx.fill();
+
+  ctx.fillStyle = '#FFEB3B';
+  ctx.beginPath();
+  ctx.arc(0, 0, bird.r, 0, Math.PI*2);
+  ctx.fill();
+
+  ctx.fillStyle = 'white';
+  ctx.beginPath(); ctx.arc(-10, -8, 12, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = 'black';
+  ctx.beginPath(); ctx.arc(-8, -8, 7, 0, Math.PI*2); ctx.fill();
+
+  ctx.fillStyle = '#FF9800';
+  ctx.beginPath();
+  ctx.moveTo(22, -6); ctx.lineTo(38, 0); ctx.lineTo(22, 6);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+function startGame() {
+  gameRunning = true;
+  score = 0;
+  PIPE_SPEED = 2.6;
+  scoreEl.textContent = '0';
+  bird.y = height * 0.5;
+  bird.vy = -1;
+  pipes.length = 0;
+  particles.length = 0;
+  frame = 0;
+  startScreen.style.display = 'none';
+  gameoverScreen.style.display = 'none';
+}
+
+function gameOver() {
+  gameRunning = false;
+  if (score > highScore) {
+    highScore = score;
+    localStorage.setItem('flappyPakhiHS', highScore);
+    highScoreEl.textContent = `High Score: ${highScore}`;
+  }
+  finalScoreEl.textContent = `Score: ${score}`;
+  gameoverScreen.style.display = 'flex';
+}
+
+document.getElementById('startBtn').onclick = startGame;
+document.getElementById('restartBtn').onclick = startGame;
+
+loop();
+</script>
+
+<script>
+  atOptions = {
+    'key' : '61634645a032311ab027081fdb86eef3',
+    'format' : 'iframe',
+    'height' : 60,
+    'width' : 468,
+    'params' : {}
+  };
+</script>
+<script src="https://www.highperformanceformat.com/61634645a032311ab027081fdb86eef3/invoke.js"></script>
+
+<script src="https://pl28805760.effectivegatecpm.com/96/30/de/9630de80d4a390792aacfc4f9ac8fff2.js"></script>
+
+<script src="https://www.effectivegatecpm.com/t7mmzprfcb?key=7d6309e28e9babd6b8dd3272acfd06d8"></script>
+
+</body>
+</html>
